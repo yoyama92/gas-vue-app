@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top" />
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vue入力フォーム</title>
+  </head>
+  <body>
+    <script src="https://unpkg.com/vue@3.2.34"></script>
+    <div id="form-group" class="demo">
+      <fieldset>
+        <legend>入力フォーム</legend>
+        <div>
+          <label>名前</label>
+          <div>
+            <input v-model="form.name" type="text" placeholder="name" />
+          </div>
+        </div>
+        <div>
+          <label>メールアドレス</label>
+          <div class="col-md-10">
+            <input v-model="form.email" type="text" placeholder="xxx@xxx.com" />
+          </div>
+        </div>
+        <div>
+          <button @click="doSubmit">Submit</button>
+        </div>
+      </fieldset>
+    </div>
+    <script>
+      Vue.createApp({
+        data() {
+          return {
+            form: {
+              name: "",
+              email: "",
+            },
+          };
+        },
+        methods: {
+          doSubmit() {
+            console.log(this.form);
+            google.script.run
+              .withSuccessHandler(() => {
+                alert("success!");
+                this.form = {};
+              })
+              .withFailureHandler(() => {})
+              .doPost(this.form);
+          },
+        },
+      }).mount("#form-group");
+    </script>
+  </body>
+</html>
