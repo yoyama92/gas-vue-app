@@ -62,55 +62,65 @@
       </fieldset>
     </div>
     <script src="https://unpkg.com/vue@3.2.34"></script>
-    <script>
-      class Form {
-        constructor() {
-          this.name = "";
-          this.email = "";
-          this.selected = "";
-        }
+    <script lang="ts">
+      const useForm = () => {
+        const initForm = {
+          name: "",
+          email: "",
+          selected: "",
+        };
 
-        toDict() {
-          return {
-            name: this.name,
-            email: this.email,
-            selected: this.selected,
-          };
-        }
-      }
+        const form = Vue.reactive({ ...initForm });
 
-      const initForm = new Form();
+        const resetForm = () => {
+          Object.assign(form, { ...initForm });
+        };
+
+        return {
+          form,
+          resetForm,
+        };
+      };
+
       Vue.createApp({
-        data() {
-          return {
-            form: initForm.toDict(),
-            options: [
-              { text: "Please select one", value: "", hidden: true },
-              { text: "One", value: "A", hidden: false },
-              { text: "Two", value: "B", hidden: false },
-              { text: "Three", value: "C", hidden: false },
-            ],
+        setup() {
+          const options = [
+            { text: "Please select one", value: "", hidden: true },
+            { text: "One", value: "A", hidden: false },
+            { text: "Two", value: "B", hidden: false },
+            { text: "Three", value: "C", hidden: false },
+          ];
+
+          const notification = (messages) => {
+            alert(messages.join("\n"));
           };
-        },
-        methods: {
-          doSubmit() {
-            const json_form = JSON.stringify(this.form, null, 4);
+
+          const { form, resetForm } = useForm();
+
+          const doSubmit = (event) => {
+            // 表示用にformをjsonに変換する。
+            const json_form = JSON.stringify(form, null, 4);
             if (typeof google !== "undefined") {
               google.script.run
                 .withSuccessHandler(() => {
-                  alert(`success!\n${json_form}`);
-                  this.form = initForm.toDict();
+                  notification(["success!", json_form]);
+                  resetForm();
                 })
                 .withFailureHandler(() => {
-                  alert(`failure!\n${json_form}`);
-                  this.form = initForm.toDict();
+                  notification(["failure!", json_form]);
+                  resetForm();
                 })
-                .doPost(this.form);
+                .doPost(form);
             } else {
-              alert(`google object is undefined\n${json_form}`);
-              this.form = initForm.toDict();
+              notification(["google object is undefined", json_form]);
+              resetForm();
             }
-          },
+          };
+          return {
+            options,
+            form,
+            doSubmit,
+          };
         },
       }).mount("#form-group");
     </script>
