@@ -13,6 +13,20 @@
       <fieldset>
         <legend>入力フォーム</legend>
         <div>
+          <label>区分</label>
+          <div>
+            <select v-model="form.selected">
+              <option
+                v-for="option in options"
+                :value="option.value"
+                :hidden="option.hidden"
+              >
+                {{ option.text }}
+              </option>
+            </select>
+          </div>
+        </div>
+        <div>
           <label>名前</label>
           <div>
             <input v-model="form.name" type="text" placeholder="name" />
@@ -30,28 +44,60 @@
       </fieldset>
     </div>
     <script>
+      class Form {
+        constructor() {
+          this.name = "";
+          this.email = "";
+          this.selected = "";
+        }
+
+        toDict() {
+          return {
+            name: this.name,
+            email: this.email,
+            selected: this.selected,
+          };
+        }
+      }
+
+      const initForm = new Form();
       Vue.createApp({
         data() {
           return {
-            form: {
-              name: "",
-              email: "",
-            },
+            form: initForm.toDict(),
+            options: [
+              { text: "Please select one", value: "", hidden: true },
+              { text: "One", value: "A", hidden: false },
+              { text: "Two", value: "B", hidden: false },
+              { text: "Three", value: "C", hidden: false },
+            ],
           };
         },
         methods: {
           doSubmit() {
             console.log(this.form);
+            if (typeof google === "undefined") {
+              alert("undefined!");
+              this.form = initForm.toDict();
+              return;
+            }
             google.script.run
               .withSuccessHandler(() => {
                 alert("success!");
-                this.form = {};
+                this.form = initForm.toDict();
               })
-              .withFailureHandler(() => {})
+              .withFailureHandler(() => {
+                alert("failure!");
+              })
               .doPost(this.form);
           },
         },
       }).mount("#form-group");
     </script>
+    <style scoped>
+      #form-group {
+        max-width: 500px;
+      }
+    </style>
   </body>
 </html>
