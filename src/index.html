@@ -53,7 +53,7 @@
         </div>
         <div class="flex flex-row-reverse">
           <button
-            @click="doSubmit"
+            @click="onClick"
             class="px-6 py-1.5 bg-blue-600 text-white uppercase rounded shadow-md hover:bg-blue-700 hover:shadow-lg"
           >
             送信
@@ -62,7 +62,20 @@
       </fieldset>
     </div>
     <script src="https://unpkg.com/vue@3.2.34"></script>
-    <script lang="ts">
+    <script>
+      const gasScriptRun = (func, ...args) => {
+        return new Promise((resolve, reject) => {
+          google.script.run
+            .withSuccessHandler((...e) => {
+              resolve(...e);
+            })
+            .withFailureHandler((...e) => {
+              reject(...e);
+            })
+            [func](...args);
+        });
+      };
+
       const useForm = () => {
         const initForm = {
           name: "",
@@ -82,6 +95,26 @@
         };
       };
 
+      const notification = (messages) => {
+        alert(messages.join("\n"));
+      };
+
+      const doSubmit = async (form) => {
+        // 表示用にformをjsonに変換する。
+        const json_form = JSON.stringify(form, null, 4);
+        if (typeof google !== "undefined") {
+          return await gasScriptRun("doPost", form)
+            .then((e) => {
+              notification(["success!", json_form]);
+            })
+            .catch((e) => {
+              notification(["failure!", json_form]);
+            });
+        } else {
+          notification(["google object is undefined", json_form]);
+        }
+      };
+
       Vue.createApp({
         setup() {
           const options = [
@@ -91,35 +124,18 @@
             { text: "Three", value: "C", hidden: false },
           ];
 
-          const notification = (messages) => {
-            alert(messages.join("\n"));
-          };
-
           const { form, resetForm } = useForm();
 
-          const doSubmit = (event) => {
-            // 表示用にformをjsonに変換する。
-            const json_form = JSON.stringify(form, null, 4);
-            if (typeof google !== "undefined") {
-              google.script.run
-                .withSuccessHandler(() => {
-                  notification(["success!", json_form]);
-                  resetForm();
-                })
-                .withFailureHandler(() => {
-                  notification(["failure!", json_form]);
-                  resetForm();
-                })
-                .doPost(form);
-            } else {
-              notification(["google object is undefined", json_form]);
+          const onClick = (event) => {
+            doSubmit(form).then(() => {
               resetForm();
-            }
+            });
           };
+
           return {
             options,
             form,
-            doSubmit,
+            onClick,
           };
         },
       }).mount("#form-group");
