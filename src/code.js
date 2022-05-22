@@ -9,6 +9,36 @@ function doPost(value) {
   const now = formatDate(new Date());
   //最終行にデータを追加
   sheet.appendRow([now, value["selected"], value["name"], value["email"]]);
+
+  const postText = JSON.stringify({
+    "date": now,
+    "selected": value["selected"],
+    "name": value["name"],
+    "email": value["email"]
+  }, null, 4);
+
+  postToSlack(postText)
+}
+
+function postToSlack(text) {
+  const options = {
+    "method": "post",
+    "contentType": "application/json",
+    "payload": JSON.stringify({
+      "text": `form data\n${text}`
+    }),
+    "muteHttpExceptions": true
+  };
+
+  const url = getSlackUrl();
+  UrlFetchApp.fetch(url, options);
+}
+
+function getSlackUrl() {
+  const properties = PropertiesService.getScriptProperties();
+  const url = properties.getProperty('WEBHOOK_URL');
+
+  return url;
 }
 
 function formatDate(dt) {
