@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top" />
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Vue入力フォーム</title>
+  </head>
+  <body>
+    <div id="form-group" class="m-4">
+      <fieldset class="border border-solid border-gray-300 p-4">
+        <legend class="text-lg border-gray-300">入力フォーム</legend>
+        <div class="mb-2">
+          <label class="inline-block mb-1 text-gray-700">区分</label>
+          <div>
+            <select
+              v-model="form.selected"
+              class="w-full px-3 py-1.5 border border-solid border-gray-300 rounded"
+            >
+              <option
+                v-for="option in options"
+                :value="option.value"
+                :hidden="option.hidden"
+              >
+                {{ option.text }}
+              </option>
+            </select>
+          </div>
+        </div>
+        <div class="mb-2">
+          <label class="inline-block mb-1 text-gray-700">名前</label>
+          <div>
+            <input
+              v-model="form.name"
+              type="text"
+              class="w-full px-3 py-1.5 border border-solid border-gray-300 rounded"
+              placeholder="name"
+            />
+          </div>
+        </div>
+        <div class="mb-2">
+          <label class="inline-block mb-1 text-gray-700">メールアドレス</label>
+          <div class="col-md-10">
+            <input
+              v-model="form.email"
+              type="text"
+              class="w-full px-3 py-1.5 border border-solid border-gray-300 rounded"
+              placeholder="xxx@xxx.com"
+            />
+          </div>
+        </div>
+        <div class="flex flex-row-reverse">
+          <button
+            @click="onClick"
+            class="px-6 py-1.5 bg-blue-600 text-white uppercase rounded shadow-md hover:bg-blue-700 hover:shadow-lg"
+          >
+            送信
+          </button>
+        </div>
+      </fieldset>
+    </div>
+    <script src="https://unpkg.com/vue@3.2.34"></script>
+    <script>
+      const gasScriptRun = (func, ...args) => {
+        return new Promise((resolve, reject) => {
+          google.script.run
+            .withSuccessHandler((...e) => {
+              resolve(...e);
+            })
+            .withFailureHandler((...e) => {
+              reject(...e);
+            })
+            [func](...args);
+        });
+      };
+
+      const useForm = () => {
+        const initForm = {
+          name: "",
+          email: "",
+          selected: "",
+        };
+
+        const form = Vue.reactive({ ...initForm });
+
+        const resetForm = () => {
+          Object.assign(form, { ...initForm });
+        };
+
+        return {
+          form,
+          resetForm,
+        };
+      };
+
+      const notification = (messages) => {
+        alert(messages.join("\n"));
+      };
+
+      const doSubmit = async (form) => {
+        // 表示用にformをjsonに変換する。
+        const json_form = JSON.stringify(form, null, 4);
+        if (typeof google !== "undefined") {
+          return await gasScriptRun("doPost", form)
+            .then((e) => {
+              notification(["success!", json_form]);
+            })
+            .catch((e) => {
+              notification(["failure!", json_form]);
+            });
+        } else {
+          notification(["google object is undefined", json_form]);
+        }
+      };
+
+      Vue.createApp({
+        setup() {
+          const options = [
+            { text: "Please select one", value: "", hidden: true },
+            { text: "One", value: "A", hidden: false },
+            { text: "Two", value: "B", hidden: false },
+            { text: "Three", value: "C", hidden: false },
+          ];
+
+          const { form, resetForm } = useForm();
+
+          const onClick = (event) => {
+            doSubmit(form).then(() => {
+              resetForm();
+            });
+          };
+
+          return {
+            options,
+            form,
+            onClick,
+          };
+        },
+      }).mount("#form-group");
+    </script>
+    <style scoped>
+      #form-group {
+        max-width: 500px;
+      }
+    </style>
+  </body>
+</html>
