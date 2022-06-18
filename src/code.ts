@@ -3,20 +3,20 @@ interface FormService {
 }
 
 class FormServiceImpl implements FormService {
-  private slackClient: SlackClient;
-  private spreadSheetClient: SpreadsheetClient;
+  #slackClient: SlackClient;
+  #spreadSheetClient: SpreadsheetClient;
 
   constructor(slackClient: SlackClient, spreadSheetClient: SpreadsheetClient) {
-    this.slackClient = slackClient;
-    this.spreadSheetClient = spreadSheetClient;
+    this.#slackClient = slackClient;
+    this.#spreadSheetClient = spreadSheetClient;
   }
 
   saveValue(value: FormValue): void {
     // スプレッドシートにデータを追加
-    this.spreadSheetClient.appendRow(value.toRow());
+    this.#spreadSheetClient.appendRow(value.toRow());
 
     // Slackにメッセージを送信
-    this.slackClient.post(value.toMessage());
+    this.#slackClient.post(value.toMessage());
   }
 }
 
@@ -26,29 +26,29 @@ interface FormValue {
 }
 
 class FormValueImpl implements FormValue {
-  private date: Date;
-  private selected: string;
-  private name: string;
-  private email: string;
+  #date: Date;
+  #selected: string;
+  #name: string;
+  #email: string;
 
   constructor(date: Date, selected: string, name: string, email: string) {
-    this.date = date;
-    this.selected = selected;
-    this.name = name;
-    this.email = email;
+    this.#date = date;
+    this.#selected = selected;
+    this.#name = name;
+    this.#email = email;
   }
 
   toRow(): string[] {
-    return [formatDate(this.date), this.selected, this.name, this.email];
+    return [formatDate(this.#date), this.#selected, this.#name, this.#email];
   }
 
   toMessage(space: number = 4): string {
     const text: string = JSON.stringify(
       {
-        date: formatDate(this.date),
-        selected: this.selected,
-        name: this.name,
-        email: this.email,
+        date: formatDate(this.#date),
+        selected: this.#selected,
+        name: this.#name,
+        email: this.#email,
       },
       null,
       space
@@ -58,20 +58,20 @@ class FormValueImpl implements FormValue {
 }
 
 class SpreadsheetClient {
-  private sheet;
+  #sheet: GoogleAppsScript.Spreadsheet.Sheet;
   constructor(sheet: GoogleAppsScript.Spreadsheet.Sheet) {
-    this.sheet = sheet;
+    this.#sheet = sheet;
   }
 
   appendRow(row: string[]) {
-    this.sheet.appendRow(row);
+    this.#sheet.appendRow(row);
   }
 }
 
 class SlackClient {
-  private webhookUrl: string;
+  #webhookUrl: string;
   constructor(webhookUrl: string) {
-    this.webhookUrl = webhookUrl;
+    this.#webhookUrl = webhookUrl;
   }
 
   post(text: string) {
@@ -84,7 +84,7 @@ class SlackClient {
       muteHttpExceptions: true,
     };
 
-    UrlFetchApp.fetch(this.webhookUrl, options);
+    UrlFetchApp.fetch(this.#webhookUrl, options);
   }
 }
 
