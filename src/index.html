@@ -84,7 +84,6 @@
         };
 
         const form = Vue.reactive({ ...initForm });
-
         const resetForm = () => {
           Object.assign(form, { ...initForm });
         };
@@ -115,29 +114,30 @@
         }
       };
 
+      const setupForm = () => {
+        const options = [
+          { text: "Please select one", value: "", hidden: true },
+          { text: "One", value: "A", hidden: false },
+          { text: "Two", value: "B", hidden: false },
+          { text: "Three", value: "C", hidden: false },
+        ];
+
+        const { form, resetForm } = useForm();
+        const onClick = (event) => {
+          doSubmit(form).then(() => {
+            resetForm();
+          });
+        };
+
+        return {
+          options,
+          form,
+          onClick,
+        };
+      };
+
       Vue.createApp({
-        setup() {
-          const options = [
-            { text: "Please select one", value: "", hidden: true },
-            { text: "One", value: "A", hidden: false },
-            { text: "Two", value: "B", hidden: false },
-            { text: "Three", value: "C", hidden: false },
-          ];
-
-          const { form, resetForm } = useForm();
-
-          const onClick = (event) => {
-            doSubmit(form).then(() => {
-              resetForm();
-            });
-          };
-
-          return {
-            options,
-            form,
-            onClick,
-          };
-        },
+        setup: setupForm,
       }).mount("#form-group");
     </script>
     <style scoped>
